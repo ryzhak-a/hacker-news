@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 
 class Search extends Component {
@@ -20,5 +21,12 @@ class Search extends Component {
     );
   }
 }
+
+Search.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func,
+  onSubmit: PropTypes.func,
+  children: PropTypes.node
+};
 
 export default Search;
