@@ -15,8 +15,6 @@ class App extends Component {
     searchTerm: DEFAULT_QUERY,
     error: null,
     isLoading: false,
-    sortKey: 'NONE',
-    isSortReverse: false
   };
 
   componentDidMount() {
@@ -29,15 +27,6 @@ class App extends Component {
   componentWillUnmount() {
     this._isMounted = false;
   }
-
-  onSort = (sortKey) => {
-    const isSortReverse = this.state.sortKey === sortKey &&
-      !this.state.isSortReverse;
-    this.setState({
-      sortKey,
-      isSortReverse
-    });
-  };
 
   needsToSearchTopStories = (searchTerm) => {
     return !this.state.results[searchTerm];
@@ -63,26 +52,31 @@ class App extends Component {
     event.preventDefault();
   };
 
-  setSearchTopStories = (result) => {
-    const { hits, page } = result;
-    const { searchKey, results } = this.state;
+  updateSearchTopStoriesState = (hits, page) => (prevState) => {
+    const { searchKey, results } = prevState;
 
     const oldHits = results && results[searchKey]
       ? results[searchKey].hits
       : [];
 
-    const updatedHits = [...oldHits, ...hits];
+    const updatedHits = [
+      ...oldHits,
+      ...hits
+    ];
 
-    this.setState({
+    return {
       results: {
         ...results,
-        [searchKey]: {
-          hits: updatedHits,
-          page
-        }
+        [searchKey]: { hits: updatedHits, page }
       },
       isLoading: false
-    });
+    };
+  };
+
+  setSearchTopStories = (result) => {
+    const { hits, page } = result;
+
+    this.setState(this.updateSearchTopStoriesState(hits, page))
   };
 
   onDismiss = (id) => {
@@ -114,8 +108,6 @@ class App extends Component {
       searchKey,
       error,
       isLoading,
-      sortKey,
-      isSortReverse
     } = this.state;
     const page = (results && results[searchKey] && results[searchKey].page) ||
       0;
@@ -145,9 +137,6 @@ class App extends Component {
             </div>
             : <Table
               list={ list }
-              sortKey={ sortKey }
-              isSortReverse={isSortReverse}
-              onSort={ this.onSort }
               onDismiss={ this.onDismiss }
             />
         }
