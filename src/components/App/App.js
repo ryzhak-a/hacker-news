@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { Component } from 'react';
 import { DEFAULT_HPP, DEFAULT_QUERY, PARAM_HPP, PARAM_PAGE, PARAM_SEARCH, PATH_BASE, PATH_SEARCH } from '../../constants';
-import Button from '../Button/Button';
+import { ButtonWithLoading } from '../Button/Button';
 import Search from '../Search/Search';
 import Table from '../Table/Table';
 import './App.css';
@@ -13,7 +13,10 @@ class App extends Component {
     results: null,
     searchKey: '',
     searchTerm: DEFAULT_QUERY,
-    error: null
+    error: null,
+    isLoading: false,
+    sortKey: 'NONE',
+    isSortReverse: false
   };
 
   componentDidMount() {
@@ -27,11 +30,22 @@ class App extends Component {
     this._isMounted = false;
   }
 
+  onSort = (sortKey) => {
+    const isSortReverse = this.state.sortKey === sortKey &&
+      !this.state.isSortReverse;
+    this.setState({
+      sortKey,
+      isSortReverse
+    });
+  };
+
   needsToSearchTopStories = (searchTerm) => {
     return !this.state.results[searchTerm];
   };
 
   fetchSearchTopStories = (searchTerm, page = 0) => {
+    this.setState({ isLoading: true });
+
     axios.get(`${ PATH_BASE }${ PATH_SEARCH }?${ PARAM_SEARCH }${ searchTerm }&${ PARAM_PAGE }${ page }&${ PARAM_HPP }${ DEFAULT_HPP }`)
       .then(results => this._isMounted &&
         this.setSearchTopStories(results.data))
@@ -66,7 +80,8 @@ class App extends Component {
           hits: updatedHits,
           page
         }
-      }
+      },
+      isLoading: false
     });
   };
 
@@ -93,7 +108,15 @@ class App extends Component {
   };
 
   render() {
-    const { searchTerm, results, searchKey, error } = this.state;
+    const {
+      searchTerm,
+      results,
+      searchKey,
+      error,
+      isLoading,
+      sortKey,
+      isSortReverse
+    } = this.state;
     const page = (results && results[searchKey] && results[searchKey].page) ||
       0;
     const list = (
@@ -122,15 +145,19 @@ class App extends Component {
             </div>
             : <Table
               list={ list }
+              sortKey={ sortKey }
+              isSortReverse={isSortReverse}
+              onSort={ this.onSort }
               onDismiss={ this.onDismiss }
             />
         }
         <div className="interactions">
-          <Button
+          <ButtonWithLoading
+            isLoading={ isLoading }
             onClick={ () => this.fetchSearchTopStories(searchKey, page + 1) }
           >
             More
-          </Button>
+          </ButtonWithLoading>
         </div>
       </div>
     );

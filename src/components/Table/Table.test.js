@@ -24,7 +24,9 @@ describe('Table', () => {
         points: 2,
         objectID: 'z'
       }
-    ]
+    ],
+    sortKey: 'TITLE',
+    isSortReverse: false
   };
 
   it('renders without crashing', () => {
